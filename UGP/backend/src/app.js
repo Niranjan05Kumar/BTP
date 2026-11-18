@@ -13,6 +13,15 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
+app.get("/", (req, res) => {
+  res.json({
+    name: "Surface Mining Operations & HEMM Dashboard API",
+    status: "online",
+    health: "/api/health",
+    documentation: "/api",
+  });
+});
+
 app.get("/api", (req, res) => {
   res.json({
     message: "Surface Mining Dashboard API",
