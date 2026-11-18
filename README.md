@@ -1,316 +1,290 @@
-# Surface Mining Dashboard
+# Surface Mining Operations & Equipment Utilization Dashboard
 
-A full-stack MERN dashboard for exploring synthetic surface-mine operations data. The application gives operations teams, analysts, and engineering interviewers a single view of production, equipment utilization, downtime, and target attainment across dates, shifts, and equipment types.
+> **Undergraduate B.Tech Project**  
+> *Development of a Web-based Production, Fleet Utilization, and Operational Decision Support System for Surface Mining Operations*
 
-The project is contained in [`UGP/`](./). The backend exposes a REST API backed by MongoDB, while the frontend consumes that API to render interactive charts and operational tables.
+[![Node.js Version](https://img.shields.io/badge/Node.js-18%2B%20%7C%2020%2B-brightgreen.svg)](https://nodejs.org/)
+[![React Version](https://img.shields.io/badge/React-19.2-blue.svg)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.0-646CFF.svg)](https://vitejs.dev/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248.svg)](https://www.mongodb.com/)
+[![Tests](https://img.shields.io/badge/Tests-26%20Passed-success.svg)](./UGP/backend/test)
+[![License](https://img.shields.io/badge/License-Academic%20Project-lightgrey.svg)]()
 
-## Key Features
+---
 
-- **KPI dashboard:** Displays total production, average daily production, utilization, downtime, and plan attainment.
-- **Production analysis:** Compares daily actual production with daily production targets and summarizes production by shift.
-- **Equipment utilization:** Aggregates operating and downtime hours per equipment unit and presents utilization rankings.
-- **Downtime analysis:** Groups downtime hours by reason and surfaces the largest downtime drivers.
-- **Operational filters:** The dashboard refetches KPI data when the date range, shift (`A`, `B`, or `C`), or equipment type changes.
-- **Equipment and raw-data views:** Provides a utilization table and a bounded raw shift-record table for inspection.
-- **Synthetic data generation:** Seeds a repeatable equipment fleet, shift records, and daily targets. The default dataset covers 21 days, three shifts per day, six dumpers, and three shovels.
-- **Responsive presentation:** Uses Recharts visualizations, a responsive CSS layout, React Router navigation, and light/dark/system theme selection persisted in browser local storage.
-- **API observability:** Includes `/api` and `/api/health` responses, Morgan request logging, CORS, and centralized Express error serialization.
+## 1. Project Overview
 
-## Technology Stack
+The **Surface Mining Operations & Equipment Utilization Dashboard** is a full-stack engineering application designed for mining engineers, fleet dispatchers, and operations analysts. It provides real-time quantitative monitoring and historical diagnostics for heavy earthmoving machinery (HEMM), production attainment, haulage cycle kinematics, equipment reliability (MTBF/MTTR), and shovel–dumper fleet matching.
 
-| Area | Verified technologies |
-| --- | --- |
-| Frontend | React 19, React DOM, Vite, React Router, Axios, Recharts |
-| UI | Plain CSS design tokens and responsive layout; `lucide-react`, `framer-motion`, and Tailwind are listed as dependencies but are not used by the inspected source |
-| Backend | Node.js, Express 5, ES modules, Morgan |
-| Database | MongoDB with Mongoose 9 |
-| Configuration | `dotenv` environment loading |
-| Data generation | Deterministic JavaScript seed utility |
-| Validation | Application-level query validation for date ranges, shifts, and equipment types |
-| Testing/build | Node syntax checks for selected backend files; Vite production build; frontend `test` script is a smoke-message placeholder |
+The application utilizes a **hybrid dataset approach**:
+1. **Realistic Synthetic Telemetry**: Granular 21-day shift-level HEMM logs, 5-phase haulage cycles, and equipment breakdown records generated deterministically.
+2. **Authentic Public Sector Benchmarks**: Verified reference production norms from **Coal India Limited (CIL)**, **Indian Bureau of Mines (IBM)**, and **Directorate General of Mines Safety (DGMS)**.
 
-## System Architecture
+---
 
-```mermaid
-flowchart LR
-    Browser[React + Vite frontend] -->|Axios REST requests| API[Express API]
-    API --> Validation[Query validation]
-    API --> KPI[KPI aggregation utilities]
-    KPI --> Mongo[(MongoDB)]
-    API --> Data[Raw data controllers]
-    Data --> Mongo
-    Seed[Seed utility] -->|insert synthetic data| Mongo
+## 2. Key Analytical Modules
+
+The dashboard is structured into **10 dedicated analytical modules** accessible via the top-level sticky sub-navigation bar:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        SURFACE MINING DASHBOARD (APP SHELL)                           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ [Overview] [Production] [Equipment] [Downtime] [Haulage]                               │
+│ [Shovel-Dumper Matching] [Material & Stripping] [Fuel & Cost] [Insights] [Data]        │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-The frontend runs as a Vite development server and calls the backend through `VITE_API_BASE_URL`. The backend connects to MongoDB before listening for requests. KPI endpoints aggregate `ShiftEquipmentRecord` documents and combine actual production with `ProductionTarget` documents where applicable.
+1. **Executive Operations Overview**:
+   Consolidated high-level KPIs (Total Production, Plan Attainment, Mechanical Availability, Operating Utilization, Lost Downtime Hours, and Unit Cost per Tonne), daily production area curves, and a Pareto downtime root-cause widget.
+2. **Production Performance Analysis**:
+   Daily extraction actuals vs. budget targets, shift-wise variations (A, B, C), cumulative production trajectories, and material category partitioning (Mineral vs. Overburden).
+3. **Equipment Fleet Performance & Availability**:
+   Reconciled shift-hour breakdowns (Operating, Idle, Maintenance) and mining engineering availability metrics:
+   $$\text{Mechanical Availability (MA)} = \frac{\text{Scheduled Hours} - \text{Maintenance Hours}}{\text{Scheduled Hours}} \times 100$$
+   $$\text{Operating Utilization (OU)} = \frac{\text{Operating Hours}}{\text{Scheduled Hours}} \times 100$$
+   $$\text{Use of Availability (UA)} = \frac{\text{Operating Hours}}{\text{Scheduled Hours} - \text{Maintenance Hours}} \times 100$$
+4. **Downtime & Equipment Reliability (DGMS Standards)**:
+   Segregation of Planned Maintenance (PM) vs. Unplanned Breakdowns vs. Operational Delays. Computes **Mean Time Between Failures (MTBF)** and **Mean Time To Repair (MTTR)** strictly using qualifying failure events.
+5. **Haulage Cycle Kinematics**:
+   Decomposition of 5 non-overlapping kinematic cycle phases:
+   $$\text{Total Cycle Time } (T_c) = t_{\text{queue}} + t_{\text{load}} + t_{\text{haul}} + t_{\text{dump}} + t_{\text{return}}$$
+   Surfaces bench bottleneck queue delay percentages and dumper hourly productivities ($t/\text{hr}$).
+6. **Shovel–Dumper Fleet Matching**:
+   Evaluates kinematic balance using the SME Match Factor (MF):
+   $$\text{MF} = \frac{N_d \times t_l}{N_s \times T_c}$$
+   Categorizes crews as *Balanced* ($0.85 \le \text{MF} \le 1.05$), *Under-Trucked* ($\text{MF} < 0.85$, excavator starved), or *Over-Trucked* ($\text{MF} > 1.05$, bench bunching), and estimates bucket loading pass counts ($N_p$).
+7. **Material Stratum & Stripping Analysis**:
+   Volumetric Stripping Ratio ($SR_v \text{ in m}^3/\text{t}$) and Gravimetric Stripping Ratio ($SR_m \text{ in t/t}$) with physical stratum properties (in-situ density $\rho$ and swell factors).
+8. **Fuel Consumption & Operating Cost Efficiency**:
+   Equipment-level specific diesel consumption ($\text{L/h}$, $\text{L/t}$), operating cost breakdown, and specific cost per extracted tonne ($\text{₹/t}$).
+9. **Operational Insights & Bottleneck Detection**:
+   Rule-based heuristic diagnostics that automatically flag equipment availability deficits, excessive haulage queuing, shovel starvation, and high fuel burn rates.
+10. **Management & Master Data Explorer**:
+    Tabbed CRUD data ledger for raw shift records (with multi-parameter pagination), HEMM fleet specifications, material catalog, and official public mining reference benchmarks.
 
-There are no verified authentication, authorization, caching, real-time transport, background worker, or external AI/ML integrations in the current implementation.
+---
 
-## Project Structure
+## 3. Technology Stack
+
+| Layer | Technologies | Key Role in Project |
+| :--- | :--- | :--- |
+| **Frontend** | React 19, Vite 8, React Router 7 | Single Page Application (SPA), component architecture, client-side routing. |
+| **Visualizations** | Recharts 3.8 | Composable charts (Area, Bar, Line, Donut, Stacked, Custom Tooltips). |
+| **State & Context** | React Context API | Centralized `FilterContext` managing date ranges, shifts, HEMM types, and view-level CSV exports. |
+| **Styling** | Custom Glassmorphism CSS | Design system tokens, responsive CSS Grid layout, light/dark/system themes. |
+| **Backend** | Node.js, Express 5 (ES Modules) | RESTful API, input validation, aggregation pipelines, error middleware. |
+| **Database** | MongoDB Atlas, Mongoose 9 | Document storage, compound indexes, multi-collection aggregations. |
+| **Testing** | Node Test Runner (`node:test`) | 26 automated unit and integration tests covering mining formulas and query filters. |
+| **Build Optimization** | Rollup Manual Chunking | Code splitting (`vendor-react`, `vendor-recharts`, `index`) keeping all chunks $< 400\text{ kB}$. |
+
+---
+
+## 4. System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Client (React 19 + Vite)"]
+        UI[App Shell & Navbars]
+        FC[FilterContext State]
+        V1[Overview & KPI Cards]
+        V2[Fleet Matching & Haulage]
+        V3[Downtime & Reliability]
+        V4[Data Management]
+        Export[CSV Export Utility]
+    end
+
+    subgraph Server["Backend API (Express 5 + Node.js)"]
+        Routes[API Routes: /api/kpi & /api/data]
+        Val[Query Validators & Sanitizers]
+        Services[Mining Analytics Domain Services]
+        Agg[MongoDB Aggregation Pipelines]
+        CrashGuards[Process Resilience Guards]
+    end
+
+    subgraph Database["Database (MongoDB Atlas)"]
+        M1[(Mines & Materials)]
+        M2[(Equipment Master - 16 HEMM)]
+        M3[(Shift Equipment Fact Records)]
+        M4[(Haulage Cycle Records)]
+        M5[(Downtime & Breakdown Events)]
+        M6[(Public Mining Benchmarks)]
+    end
+
+    UI --> FC
+    FC --> Routes
+    Routes --> Val --> Services --> Agg --> Database
+    Export -.-> Client
+```
+
+---
+
+## 5. Repository Structure
 
 ```text
 BTP/
-├── README.md
+├── README.md                           # Master Project Documentation
+├── docs/                               # Engineering & Academic Project Docs
+│   ├── DATABASE_SCHEMA.md              # MongoDB collections & ER diagrams
+│   ├── DATA_DICTIONARY.md              # Field definitions & data types
+│   ├── KPI_DEFINITIONS.md              # Mathematical formulas & mining standards
+│   ├── FRONTEND_IMPLEMENTATION.md      # UI architecture & component hierarchy
+│   ├── DASHBOARD_MODULES.md            # Detailed module specifications
+│   └── FRONTEND_TEST_REPORT.md         # UI test matrix & responsiveness report
 └── UGP/
-    ├── project_summary.md
-    ├── backend/
+    ├── backend/                        # Express 5 REST API
     │   ├── package.json
-    │   └── src/
-    │       ├── app.js
-    │       ├── server.js
-    │       ├── config/db.js
-    │       ├── controllers/
-    │       │   ├── dataController.js
-    │       │   └── kpiController.js
-    │       ├── models/
-    │       │   ├── Equipment.js
-    │       │   ├── ProductionTarget.js
-    │       │   └── ShiftEquipmentRecord.js
-    │       ├── routes/
-    │       │   ├── dataRoutes.js
-    │       │   └── kpiRoutes.js
-    │       └── utils/
-    │           ├── kpiUtils.js
-    │           ├── seedSampleData.js
-    │           └── validators.js
-    └── frontend/
+    │   ├── src/
+    │   │   ├── app.js                  # Express application setup & middleware
+    │   │   ├── server.js               # HTTP listener & process crash guards
+    │   │   ├── config/db.js            # Mongoose MongoDB connection
+    │   │   ├── controllers/            # Route controllers (kpiController, dataController)
+    │   │   ├── models/                 # 9 Mongoose data schemas
+    │   │   ├── routes/                 # /api/kpi and /api/data route definitions
+    │   │   ├── services/               # 8 Domain services (fleet, haulage, reliability...)
+    │   │   └── utils/                  # Deterministic seed generator & validators
+    │   └── test/                       # 26 automated unit & formula test suites
+    └── frontend/                       # React 19 + Vite Application
         ├── package.json
-        ├── index.html
+        ├── vite.config.js              # Production code splitting & Rollup config
+        ├── index.html                  # HTML entry point
         └── src/
-            ├── App.jsx
-            ├── main.jsx
-            ├── style.css
-            ├── components/
-            │   ├── Dashboard/
-            │   ├── Filters/
-            │   ├── Layout/
-            │   └── UI/
-            ├── pages/
-            │   ├── MainDashboard.jsx
-            │   ├── EquipmentView.jsx
-            │   └── DataView.jsx
-            └── services/api.js
+            ├── App.jsx                 # Route configurations & theme provider
+            ├── main.jsx                # DOM root mount
+            ├── style.css               # Glassmorphism design system & responsive tokens
+            ├── components/             # Reusable UI widgets & filters
+            ├── context/                # FilterContext & export handlers
+            ├── pages/                  # 10 analytical dashboard pages
+            ├── services/api.js         # Centralized Axios client
+            └── utils/exportCsv.js      # Robust CSV file generator
 ```
 
-## Prerequisites
+---
 
-- Node.js and npm compatible with the versions declared in the installed package lockfiles. The project does not declare an `engines` field, so an exact Node.js version is not specified.
-- A running MongoDB instance, local or hosted.
-- Git.
+## 6. Local Setup and Installation
 
-## Installation and Local Setup
+### Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+- **MongoDB**: Active MongoDB instance (Local or free [MongoDB Atlas](https://www.mongodb.com/) cluster)
+- **Git**
 
-Clone the repository and enter the application directory:
-
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/Niranjan05Kumar/BTP.git
-cd BTP/UGP
+cd BTP
 ```
 
-### 1. Configure and start the backend
-
+### 2. Configure & Run Backend
 ```bash
-cd backend
-copy .env.example .env
-npm install
-npm run seed:drop
-npm run dev
+cd UGP/backend
 ```
 
-On macOS/Linux, replace `copy .env.example .env` with `cp .env.example .env`.
-
-The API listens on `http://localhost:5000` by default. `npm run seed:drop` connects to MongoDB and recreates the seeded equipment, shift records, and target collections. The seed utility currently clears and repopulates these collections on every run; use it only against the intended database.
-
-### 2. Configure and start the frontend
-
-In a second terminal:
-
-```bash
-cd BTP/UGP/frontend
-copy .env.example .env
-npm install
-npm run dev
-```
-
-On macOS/Linux, replace the `copy` command with `cp`. Vite normally serves the frontend at `http://localhost:5173`.
-
-If the backend uses a non-default URL, update `VITE_API_BASE_URL` before starting Vite. The frontend defaults to `http://localhost:5000/api` when the variable is absent.
-
-### Available scripts
-
-Backend (`UGP/backend`):
-
-```bash
-npm run dev       # nodemon development server
-npm start         # production-style Node server
-npm run seed      # reseed synthetic data
-npm run seed:drop # clear and reseed synthetic data
-npm test          # node --check on selected backend files
-```
-
-Frontend (`UGP/frontend`):
-
-```bash
-npm run dev       # Vite development server
-npm run build     # production bundle
-npm run preview   # serve the built bundle locally
-npm test          # prints a configured smoke-test message
-```
-
-## Environment Variables
-
-### Backend: `UGP/backend/.env`
-
-```dotenv
+Create `.env` file (copy from `.env.example`):
+```env
 PORT=5000
-MONGO_URI=mongodb://localhost:27017
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/
 MONGO_DB_NAME=surface_mining_dashboard
 SEED_DAYS=21
 SEED_BASE=1337
 ```
 
-| Variable | Purpose |
-| --- | --- |
-| `PORT` | HTTP port for the Express server. Defaults to `5000`. |
-| `MONGO_URI` | MongoDB connection URI. Required; the server exits if it is missing. |
-| `MONGO_DB_NAME` | Database name passed to Mongoose. Defaults to `surface_mining_dashboard`. |
-| `SEED_DAYS` | Number of days generated by the seed utility. Defaults to `21`. |
-| `SEED_BASE` | Numeric seed used for repeatable generated values. Defaults to `1337`. |
+Install dependencies, seed database, and start the development server:
+```bash
+npm install
+npm run seed       # Seeds 21 days of operational records into MongoDB
+npm run dev        # Starts server on http://localhost:5000
+```
 
-### Frontend: `UGP/frontend/.env`
+> **Note on Windows PowerShell**: If PowerShell script execution is restricted on your system, run commands using `npm.cmd` (e.g., `npm.cmd run dev`).
 
-```dotenv
+### 3. Configure & Run Frontend
+In a new terminal window:
+```bash
+cd UGP/frontend
+```
+
+Create `.env` file:
+```env
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-`VITE_API_BASE_URL` is the Axios base URL used by the browser application. Do not place secrets in frontend environment variables because Vite exposes `VITE_*` values to client-side code.
-
-## API Documentation
-
-All routes below are relative to `http://localhost:5000`. KPI routes require `start` and `end` in a parseable `YYYY-MM-DD` form. Optional KPI filters are `shift=all|A|B|C` and `type=all|dumper|shovel|dozer|drill`. Invalid filters or a reversed date range return HTTP 400 with a JSON `message`.
-
-### Service endpoints
-
-| Method | Route | Purpose | Authentication |
-| --- | --- | --- | --- |
-| GET | `/api` | Returns API name and health route information | None |
-| GET | `/api/health` | Returns `{ "status": "ok", "timestamp": "..." }` | None |
-
-### KPI endpoints
-
-| Method | Route | Purpose | Response shape |
-| --- | --- | --- | --- |
-| GET | `/api/kpi/summary` | Calculates production, average daily production, utilization, downtime, cost per tonne, plan attainment, and top downtime reasons | JSON object |
-| GET | `/api/kpi/production/daily` | Groups actual material tonnage by date and adds the matching target | Array of `{ date, actual, target }` |
-| GET | `/api/kpi/production/by-shift` | Groups material tonnage by shift code | Array of `{ shiftCode, production }` |
-| GET | `/api/kpi/equipment/utilization` | Groups operating/downtime hours by equipment and calculates utilization | Array of equipment utilization objects |
-| GET | `/api/kpi/downtime/by-reason` | Groups downtime hours by downtime reason | Array of `{ reason, downtimeHours }` |
-
-Examples:
-
-```text
-GET /api/kpi/summary?start=2026-01-01&end=2026-01-21&shift=A&type=dumper
-GET /api/kpi/production/daily?start=2026-01-01&end=2026-01-21
-GET /api/kpi/equipment/utilization?start=2026-01-01&end=2026-01-21&type=shovel
+Install dependencies and start the Vite client:
+```bash
+npm install
+npm run dev        # Serves dashboard on http://localhost:5173
 ```
 
-### Raw data endpoints
+---
 
-| Method | Route | Purpose | Query behavior |
-| --- | --- | --- | --- |
-| GET | `/api/data/equipment` | Lists equipment definitions sorted by `equipmentId` | No query parameters |
-| GET | `/api/data/records` | Lists shift/equipment fact records | Optional `start`, `end`, and `limit`; limit is capped at 1000 and defaults to 300 |
-| GET | `/api/data/targets` | Lists production targets sorted by date | No query parameters |
+## 7. Automated Testing & Verification
 
-The raw-record controller currently filters only by date range; `shift` and `type` values sent by the frontend are not applied to this endpoint.
+The backend includes a comprehensive test suite executed with Node's native test runner (`node:test`):
 
-Unexpected server/database errors are serialized as HTTP 500 JSON responses by the Express error middleware. No endpoint requires authentication in the current codebase.
-
-## Database Design
-
-MongoDB contains three Mongoose collections:
-
-- **`Equipment`** — equipment identity, type, capacity, status, and notes. `equipmentId` is unique.
-- **`ShiftEquipmentRecord`** — the main fact collection, with date, shift, equipment, material tonnage, trips, operating hours, downtime hours/reason, fuel, and operating cost. A compound index supports date/shift/equipment lookups.
-- **`ProductionTarget`** — one target tonnage per date. `date` is unique and indexed.
-
-```mermaid
-erDiagram
-    EQUIPMENT ||--o{ SHIFT_EQUIPMENT_RECORD : "identified by equipmentId"
-    PRODUCTION_TARGET ||--o{ SHIFT_EQUIPMENT_RECORD : "date aligns with"
-    EQUIPMENT {
-        string equipmentId UK
-        string type
-        number capacityTon
-        string status
-    }
-    SHIFT_EQUIPMENT_RECORD {
-        date date
-        string shiftCode
-        string equipmentId
-        string equipmentType
-        number materialTonnage
-        number operatingHours
-        number downtimeHours
-        string downtimeReason
-    }
-    PRODUCTION_TARGET {
-        date date UK
-        number targetTonnage
-    }
+```bash
+cd UGP/backend
+npm test
 ```
 
-The relationships shown are logical application relationships rather than Mongoose `ref` foreign keys. KPI calculations join targets by formatted date and group operational records through their stored equipment identifiers and types.
+### Verified Test Suites (26/26 Passing)
+- **Mechanical Availability & Utilization**: Normal shifts, zero scheduled hours division guards, complete shift breakdown isolation.
+- **Shovel-Dumper Match Factor & Passes**: Balanced ($\text{MF}=1.0$), under-trucked ($\text{MF}<0.85$), over-trucked ($\text{MF}>1.05$), and loading pass calculations.
+- **Stripping Ratio Conversions**: Volumetric ($SR_v$) and gravimetric ($SR_m$) with density conversions and zero-production guards.
+- **Reliability Metrics**: MTBF and MTTR strictly isolating qualifying unplanned breakdown events.
+- **Haulage Kinematics**: Non-overlapping 5-phase cycle composition verification.
+- **Fuel Intensity**: Consumption per hour and per delivered tonne.
+- **Input Validation**: Date format validation, chronological order checks, shift code enums (`A`, `B`, `C`), and HEMM type constraints.
+- **Simulation Reconciliation**: Deterministic operational generation and scheduled vs. operating hour reconciliation.
 
-### KPI formulas
+### Frontend Production Build
+To test the production build and verify bundle code splitting:
+```bash
+cd UGP/frontend
+npm run build
+```
+Generates optimized static assets in `dist/` with zero warnings.
 
-- **Average utilization:** `totalOperatingHours / (totalOperatingHours + totalDowntimeHours) * 100`
-- **Equipment utilization:** `operatingHours / (numberOfRecords * 8) * 100`
-- **Downtime percentage:** `totalDowntimeHours / (totalOperatingHours + totalDowntimeHours) * 100`
-- **Plan attainment:** `totalProduction / totalTarget * 100`
-- **Cost per tonne:** `totalOperatingCost / totalProduction`
-- **Average daily production:** `totalProduction / numberOfReturnedProductionDays`
+---
 
-## Security and Error Handling
+## 8. Deployment Guide
 
-- Mongoose schemas enforce required fields, numeric minimums/maximums, enumerated shifts/equipment types, and unique indexes where defined.
-- KPI query inputs are validated before aggregation, including required dates, valid date ordering, supported shift codes, and supported equipment types.
-- Express uses `express.json()`, CORS, Morgan request logging, and centralized error middleware.
-- The application has no implemented user authentication, authorization, rate limiting, password handling, or secret-management service. MongoDB credentials and other sensitive values must remain in local environment files.
+The application is structured for instant, production-grade cloud deployment:
 
-## Testing and Build Verification
+### Backend Deployment (e.g. Render / Railway)
+1. Link your GitHub repository to [Render.com](https://render.com).
+2. Create a new **Web Service**:
+   - **Root Directory**: `UGP/backend`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+3. Add Environment Variables:
+   - `MONGO_URI`: `mongodb+srv://<user>:<password>@cluster.mongodb.net/`
+   - `MONGO_DB_NAME`: `surface_mining_dashboard`
+4. The service will deploy at `https://<your-backend-app>.onrender.com`.
 
-The repository currently contains no dedicated unit, integration, or end-to-end test files.
+### Frontend Deployment (e.g. Vercel / Netlify)
+1. Link your GitHub repository to [Vercel.com](https://vercel.com).
+2. Create a new **Project**:
+   - **Root Directory**: `UGP/frontend`
+   - **Framework Preset**: `Vite`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+3. Add Environment Variable:
+   - `VITE_API_BASE_URL`: `https://<your-backend-app>.onrender.com/api`
+4. Click **Deploy**. Your dashboard will be live with full SSL and global CDN delivery.
 
-- `backend/npm test` runs `node --check` against `server.js`, `app.js`, and `kpiUtils.js`; it checks syntax only.
-- `frontend/npm test` prints `Frontend smoke test script configured`; it does not execute assertions.
-- `frontend/npm run build` creates the Vite production bundle.
+---
 
-These commands are configured in the package manifests; they were not treated as evidence of a full automated test suite.
+## 9. Academic & Technical References
 
-## Deployment
+1. **SME Mining Engineering Handbook** (Society for Mining, Metallurgy & Exploration) — Surface mining haulage cycle kinematics and Shovel–Dumper Match Factor standards.
+2. **Coal India Limited (CIL) Operational Reports** — HEMM availability and utilization performance norms.
+3. **Indian Bureau of Mines (IBM)** — Mineral conservation guidelines, physical rock strata densities, and stripping ratio definitions.
+4. **Directorate General of Mines Safety (DGMS)** — Mechanical failure reporting, breakdown incident classification, and preventive maintenance protocols.
 
-No Dockerfile, Docker Compose file, CI workflow, hosting configuration, or verified production deployment is present in the inspected repository. A deployment would need:
+---
 
-1. A reachable MongoDB instance and securely configured `MONGO_URI`.
-2. A backend process running `npm start`.
-3. A built frontend from `npm run build`, served by a static host or web server.
-4. A frontend `VITE_API_BASE_URL` pointing to the deployed API before the Vite build.
+## 10. Author & Acknowledgements
 
-The production hosting provider, TLS configuration, domain, process manager, and CORS allowlist require deployment-specific decisions and are not defined by this project.
-
-## Current Limitations
-
-- Data is synthetic and generated locally; no external mine telemetry or third-party API integration is implemented.
-- The frontend displays fixed “trend” values and random sparkline samples in KPI cards rather than calculating historical trend series.
-- The dashboard’s “Export” control is presentational and has no export handler.
-- Frontend Equipment and Data pages use their own fixed recent date ranges instead of the dashboard filter state.
-- The raw-data route does not apply shift or equipment-type filtering.
-- There are no authentication/authorization controls or automated application-level tests.
-- The HTML document title remains `frontend` in `frontend/index.html`.
-
-## Further Reading
-
-
-- [`project_summary.md`](./project_summary.md) — original project scope and domain model.
-- [`frontend/README_UI.md`](./frontend/README_UI.md) — UI redesign notes.
+- **Developer**: Niranjan Kumar
+- **Project**: Undergraduate B.Tech Capstone Project
+- **Institution**: Mining Engineering & Computer Science Disciplines
