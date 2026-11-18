@@ -1,7 +1,18 @@
 import axios from "axios";
 
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && !envUrl.includes("localhost")) {
+    return envUrl;
+  }
+  if (import.meta.env.PROD) {
+    return "https://surface-mining-api.onrender.com/api";
+  }
+  return envUrl || "http://localhost:5000/api";
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  baseURL: getBaseUrl(),
 });
 
 export const toQuery = (filters = {}) => {
@@ -42,9 +53,10 @@ export const getMaterialProduction = async (filters) => {
 export const getEquipmentUtilization = async (filters) => {
   const { data } = await api.get("/kpi/equipment/utilization", { params: toQuery(filters) });
   return data;
-};// Alias for backward compatibility / legacy import name
-export const getUtilization = getEquipmentUtilization;
+};
 
+// Alias for backward compatibility / legacy import name
+export const getUtilization = getEquipmentUtilization;
 
 export const getEquipmentSummary = async (filters) => {
   const { data } = await api.get("/kpi/equipment/summary", { params: toQuery(filters) });
