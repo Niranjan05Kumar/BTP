@@ -1,23 +1,31 @@
 import {
-  getDailyProductionWithTarget,
-  getDowntimeByReason,
-  getEquipmentUtilization,
-  getShiftProduction,
   getSummaryKPIs,
+  getDailyProductionWithTarget,
+  getShiftProduction,
+  getEquipmentUtilization,
+  getDowntimeByReason,
 } from "../utils/kpiUtils.js";
-import { validateDateRange, validateEquipmentType, validateShift } from "../utils/validators.js";
+import { getMaterialProduction } from "../services/productionService.js";
+import { getEquipmentSummary } from "../services/equipmentService.js";
+import {
+  getDowntimeByCategory,
+  getDowntimeBySubSystem,
+} from "../services/downtimeService.js";
+import {
+  getHaulageSummary,
+  getHaulageByDumper,
+} from "../services/haulageService.js";
+import { getFleetMatchingAnalysis } from "../services/fleetMatchingService.js";
+import { getStrippingRatioAnalysis } from "../services/materialService.js";
+import { getFuelCostSummary } from "../services/fuelCostService.js";
+import { getReliabilityMetrics } from "../services/reliabilityService.js";
+import { getOperationalInsights } from "../services/insightService.js";
+import { parseFilterQuery } from "../utils/validators.js";
 
 export const fetchSummary = async (req, res, next) => {
   try {
-    const { start, end, shift = "all", type = "all" } = req.query;
-    validateDateRange(start, end);
-    validateEquipmentType(type);
-
-    if (shift !== "all") {
-      validateShift(shift);
-    }
-
-    const data = await getSummaryKPIs(start, end, shift, type);
+    const filters = parseFilterQuery(req.query);
+    const data = await getSummaryKPIs(filters.start, filters.end, filters.shift, filters.type);
     res.json(data);
   } catch (error) {
     next(error);
@@ -26,15 +34,8 @@ export const fetchSummary = async (req, res, next) => {
 
 export const fetchDailyProduction = async (req, res, next) => {
   try {
-    const { start, end, shift = "all", type = "all" } = req.query;
-    validateDateRange(start, end);
-    validateEquipmentType(type);
-
-    if (shift !== "all") {
-      validateShift(shift);
-    }
-
-    const data = await getDailyProductionWithTarget(start, end, shift, type);
+    const filters = parseFilterQuery(req.query);
+    const data = await getDailyProductionWithTarget(filters.start, filters.end, filters.shift, filters.type);
     res.json(data);
   } catch (error) {
     next(error);
@@ -43,16 +44,18 @@ export const fetchDailyProduction = async (req, res, next) => {
 
 export const fetchShiftProduction = async (req, res, next) => {
   try {
-    const { start, end, shift = "all", type = "all" } = req.query;
+    const filters = parseFilterQuery(req.query);
+    const data = await getShiftProduction(filters.start, filters.end, filters.shift, filters.type);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    validateDateRange(start, end);
-    validateEquipmentType(type);
-
-    if (shift !== "all") {
-      validateShift(shift);
-    }
-
-    const data = await getShiftProduction(start, end, shift, type);
+export const fetchMaterialProduction = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getMaterialProduction(filters);
     res.json(data);
   } catch (error) {
     next(error);
@@ -61,15 +64,18 @@ export const fetchShiftProduction = async (req, res, next) => {
 
 export const fetchEquipmentUtilization = async (req, res, next) => {
   try {
-    const { start, end, shift = "all", type = "all" } = req.query;
-    validateDateRange(start, end);
-    validateEquipmentType(type);
+    const filters = parseFilterQuery(req.query);
+    const data = await getEquipmentUtilization(filters.start, filters.end, filters.shift, filters.type);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    if (shift !== "all") {
-      validateShift(shift);
-    }
-
-    const data = await getEquipmentUtilization(start, end, shift, type);
+export const fetchEquipmentSummary = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getEquipmentSummary(filters);
     res.json(data);
   } catch (error) {
     next(error);
@@ -78,15 +84,98 @@ export const fetchEquipmentUtilization = async (req, res, next) => {
 
 export const fetchDowntimeByReason = async (req, res, next) => {
   try {
-    const { start, end, shift = "all", type = "all" } = req.query;
-    validateDateRange(start, end);
-    validateEquipmentType(type);
+    const filters = parseFilterQuery(req.query);
+    const data = await getDowntimeByReason(filters.start, filters.end, filters.shift, filters.type);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    if (shift !== "all") {
-      validateShift(shift);
-    }
+export const fetchDowntimeByCategory = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getDowntimeByCategory(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    const data = await getDowntimeByReason(start, end, shift, type);
+export const fetchDowntimeBySubSystem = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getDowntimeBySubSystem(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchHaulageSummary = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getHaulageSummary(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchHaulageByDumper = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getHaulageByDumper(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchFleetMatching = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getFleetMatchingAnalysis(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchStrippingRatio = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getStrippingRatioAnalysis(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchFuelCostSummary = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getFuelCostSummary(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchReliabilityMetrics = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getReliabilityMetrics(filters);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchInsights = async (req, res, next) => {
+  try {
+    const filters = parseFilterQuery(req.query);
+    const data = await getOperationalInsights(filters);
     res.json(data);
   } catch (error) {
     next(error);

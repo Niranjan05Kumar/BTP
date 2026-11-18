@@ -7,11 +7,14 @@ const EquipmentTypeFilter = ({ equipmentType, onChange }) => {
         value={equipmentType}
         onChange={(event) => onChange("equipmentType", event.target.value)}
       >
-        <option value="all">All</option>
-        <option value="dumper">Dumper</option>
-        <option value="shovel">Shovel</option>
-        <option value="dozer">Dozer</option>
-        <option value="drill">Drill</option>
+        <option value="all">All Fleet Types</option>
+        <option value="dumper">Dumpers / Haul Trucks</option>
+        <option value="shovel">Excavators & Shovels</option>
+        <option value="wheel_loader">Wheel Loaders</option>
+        <option value="dozer">Crawler Bulldozers</option>
+        <option value="drill">Blast-Hole Drills</option>
+        <option value="motor_grader">Motor Graders</option>
+        <option value="water_tanker">Water Tankers</option>
       </select>
     </div>
   );

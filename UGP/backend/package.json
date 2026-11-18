@@ -9,7 +9,7 @@
     "start": "node src/server.js",
     "seed": "node src/utils/seedSampleData.js",
     "seed:drop": "node src/utils/seedSampleData.js --drop",
-    "test": "node --check src/server.js && node --check src/app.js && node --check src/utils/kpiUtils.js"
+    "test": "node --check src/server.js && node --check src/app.js && node --check src/utils/kpiUtils.js && node --test test/*.test.js"
   },
   "keywords": [],
   "author": "",
