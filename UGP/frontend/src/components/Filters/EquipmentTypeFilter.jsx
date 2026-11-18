@@ -1,6 +1,6 @@
 const EquipmentTypeFilter = ({ equipmentType, onChange }) => {
   return (
-    <div className="filter-item">
+    <div className="filter-field">
       <label htmlFor="equipmentType">Equipment Type</label>
       <select
         id="equipmentType"

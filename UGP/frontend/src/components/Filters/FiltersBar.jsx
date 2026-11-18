@@ -9,40 +9,36 @@ const FiltersBar = ({ showMaterial = true, showEquipment = true, customExportLab
 
   return (
     <div className="filters-bar">
-      <div className="control">
+      <div className="filters-inputs-grid">
         <DateRangeFilter
           startDate={filters.startDate}
           endDate={filters.endDate}
           onChange={updateFilter}
         />
+
+        <div className="filters-selectors-row">
+          <ShiftFilter shift={filters.shift} onChange={updateFilter} />
+
+          {showEquipment && (
+            <EquipmentTypeFilter
+              equipmentType={filters.equipmentType}
+              onChange={updateFilter}
+            />
+          )}
+
+          {showMaterial && (
+            <MaterialFilter
+              materialCategory={filters.materialCategory}
+              onChange={updateFilter}
+            />
+          )}
+        </div>
       </div>
 
-      <div className="control">
-        <ShiftFilter shift={filters.shift} onChange={updateFilter} />
-      </div>
-
-      {showEquipment && (
-        <div className="control">
-          <EquipmentTypeFilter
-            equipmentType={filters.equipmentType}
-            onChange={updateFilter}
-          />
-        </div>
-      )}
-
-      {showMaterial && (
-        <div className="control">
-          <MaterialFilter
-            materialCategory={filters.materialCategory}
-            onChange={updateFilter}
-          />
-        </div>
-      )}
-
-      <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
+      <div className="filters-actions-row">
         <button
           type="button"
-          className="icon-btn text-btn"
+          className="icon-btn text-btn filter-reset-btn"
           onClick={resetFilters}
           title="Reset to default 30-day range and all filters"
         >
@@ -51,7 +47,7 @@ const FiltersBar = ({ showMaterial = true, showEquipment = true, customExportLab
 
         <button
           type="button"
-          className="export-btn"
+          className="export-btn filter-export-btn"
           onClick={() => triggerExport()}
           title="Download operational dataset as CSV"
         >

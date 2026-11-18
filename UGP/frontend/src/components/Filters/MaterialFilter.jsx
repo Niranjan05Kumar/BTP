@@ -1,7 +1,7 @@
 const MaterialFilter = ({ materialCategory, onChange }) => {
   return (
-    <div className="filter-item">
-      <label htmlFor="materialCategory">Material</label>
+    <div className="filter-field">
+      <label htmlFor="materialCategory">Material Stratum</label>
       <select
         id="materialCategory"
         value={materialCategory || "all"}
@@ -9,7 +9,7 @@ const MaterialFilter = ({ materialCategory, onChange }) => {
       >
         <option value="all">All Materials</option>
         <option value="Mineral">Mineral (Coal / Ore)</option>
-        <option value="Overburden">Overburden (Sandstone/Shale)</option>
+        <option value="Overburden">Overburden (Waste/Sandstone)</option>
         <option value="Topsoil">Topsoil Stratum</option>
       </select>
     </div>
@@ -17,4 +17,3 @@ const MaterialFilter = ({ materialCategory, onChange }) => {
 };
 
 export default MaterialFilter;
-

@@ -201,9 +201,9 @@ body {
 .filters-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
-  padding: 12px;
+  padding: 14px 18px;
   border-radius: var(--radius-lg);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -211,25 +211,80 @@ body {
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
 
-.filters-bar .control {
+.filters-inputs-grid {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.filters-bar label,
-.filter-item label {
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 12px;
+  flex: 1;
+}
+
+.date-range-filter {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.filters-selectors-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-field label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filter-field input,
+.filter-field select {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.filter-field input:focus,
+.filter-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.filters-actions-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.filter-reset-btn {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.filter-export-btn {
+  height: 38px;
+  font-size: 13px;
 }
 
 input,
@@ -549,35 +604,163 @@ select {
   }
 }
 
-@media (max-width: 640px) {
-  .top-nav {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .page-container {
-    padding: 18px 14px 28px;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 900px) {
   .filters-bar {
     flex-direction: column;
     align-items: stretch;
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .filters-inputs-grid {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+  }
+
+  /* Date range becomes a crisp 2-column grid side-by-side */
+  .date-range-filter {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .date-range-filter .filter-field input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Selectors become a responsive grid */
+  .filters-selectors-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .filters-selectors-row .filter-field {
+    width: 100%;
+  }
+
+  /* If Material selector is present, span full width */
+  .filters-selectors-row .filter-field:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .filter-field select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Buttons sit side-by-side with 50% width each */
+  .filters-actions-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .filter-reset-btn,
+  .filter-export-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    padding: 10px 14px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand .logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand h1 {
+    font-size: 14px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .sub-nav {
+    top: 53px;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+
+  .sub-nav a {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+
+  .page-container {
+    padding: 14px 12px 24px;
+  }
+
+  /* 2-column KPI grid on mobile so user sees 4-6 KPIs without endless scrolling */
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0 20px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+  }
+
+  .kpi-card .value {
+    font-size: 19px;
+  }
+
+  .kpi-card .label {
+    font-size: 11px;
   }
 
   .dashboard-grid {
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .chart-card {
+    padding: 14px;
+    overflow-x: hidden;
+  }
+
+  .chart-card h3 {
+    font-size: 14px;
   }
 
   .surface-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .section-head {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .table-wrap {
+    margin: 0 -12px;
+    padding: 0 12px;
+    width: calc(100% + 24px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 
